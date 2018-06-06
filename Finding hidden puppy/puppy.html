@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Finding hidden puppy</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript">
+    var nav = {
+  //게임정보 객체 생성
+  leftCount: 8,
+  failCount: 0,
+  leftTime: 20,
+  gamePossible: false,
+  gameEnd: false,
+  gameStart: false
+};
+
+var randomnumber = []; //어떤 계란에 강아지를 넣을 것인지에 대한 정보
+var dog = []; //강아지가 들어있는 달걀의 순서
+var clicked = []; //클릭되있는지 안되어있는지 확인
+
+//중복 없이 난수 8개 받는 함수.
+function update() {
+  for (i = 0; i < 9; i++) {
+    while (1) {
+      var x = Math.floor(Math.random() * 24); //난수 하나 생성
+      var Found = 0; //이미있는 값인지 확인하기 위해 플래그 설정
+      //같은 값이 있는지 확인
+      for (j = 0; j < i; j++) {
+        if (randomnumber[j] == randomnumber[i]) {
+          //같은 값이 있으면
+          Found = 1;
+          break;
+        }
+      }
+      //같은 값이 없으면 while문 탈출
+      if (!Found) break;
+
+      randomnumber[i] = x;
+    }
+  }
+  randomnumber = randomnumber.sort(function(a, b) {
+    return a - b;
+  });
+}
+
+function setDog() {
+  //강아지가 들어있는 달걀의 순서를 정함.
+  for (i = 0; i < 24; i++) {
+    dog[i] = 0;
+  }
+
+  for (i = 0; i < 24; i++) {
+    dog[randomnumber[i]] = 1;
+  }
+}
+
+function createEggs(dog) {
+  //달걀 생성하는 함수
+  //근데 배열dog안에 숫자가 1인 경우에는 value값에 1을 준다.
+
+  for (i = 0; i < 24; i++) {
+    $(".game_screen").append(
+      "<div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=" +
+        i +
+        " ></div>"
+    );
+  }
+}
+
+function showHiddenPuppied() {
+  //마지막에 못찾은 강아지를 보여주는 함수
+  for (i = 0; i < 24; i++) {
+    if ((dog[i] == 1) & (clicked[i] != 1)) {
+      document.getElementById(i).style.border = "1px red solid";
+      var test = document.getElementById(i);
+      test.setAttribute("src", "./images/dog.png");
+    }
+  }
+}
+
+function clickEggs(clicked_id) {
+  if (dog[clicked_id] == 1) {
+    //알맞은 달걀 눌렀을때
+    foundDog(clicked_id);
+    playRightMusic();
+  } else {
+    failToFindDog(clicked_id);
+    playWrongMusic();
+  }
+}
+
+//알맞은 달걀을 눌렀을때 발생하는 함수
+function foundDog(clicked_id) {
+  if (!nav.gamePossible) {
+    return;
+  }
+
+  if (clicked[clicked_id] == 1) {
+    //한번이라도 눌렸던 적이 있다면
+    return; //바로 함수 종료
+  }
+
+  clicked[clicked_id] = 1; //눌렀었다는 표시
+  nav.leftCount -= 1;
+  console.log(nav.leftCount);
+  var test = document.getElementById(clicked_id);
+  test.setAttribute("src", "./images/dog.png");
+
+  givingNavInfo();
+  if (nav.leftCount == 0) {
+    successGame();
+  }
+}
+
+//틀린 달걀을 눌렀을때 작동하는 함수
+function failToFindDog(clicked_id) {
+  if (!nav.gamePossible) {
+    return;
+  }
+  nav.failCount += 1;
+  if (nav.failCount == 5) {
+    endGame();
+  }
+  givingNavInfo();
+}
+
+function givingNavInfo() {
+  //게임인포 부분 업데이트 함수
+  document.getElementById("first").innerHTML = nav.leftCount.toString();
+  document.getElementById("second").innerHTML = nav.failCount.toString();
+  document.getElementById("third").innerHTML = nav.leftTime.toString();
+}
+
+function countDown() {
+  //게임 시간 줄이는 함수
+  if (nav.gameEnd) {
+    return;
+  }
+
+  if (nav.leftTime == 0) {
+    endGame();
+    return;
+  }
+
+  nav.leftTime -= 1;
+
+  givingNavInfo();
+}
+
+function successGame() {
+  //성공했을때 끝내는 함수.
+  document.getElementById("gameMessage").innerHTML = "성공";
+  document.getElementById("gameSuccessMessage").style.display = "flex";
+  nav.gamePossible = false;
+  nav.gameEnd = true;
+  rebuildStartButton();
+  playClearMusic();
+}
+
+function endGame() {
+  //게임 종료 함수
+  document.getElementById("gameMessage").innerHTML = "실패";
+  document.getElementById("gameOverMessage").style.display = "flex";
+  showHiddenPuppied();
+  nav.gamePossible = false;
+  nav.gameEnd = true;
+  rebuildStartButton();
+  playFailMusic();
+}
+
+function counter() {
+  //매 초마다 동작되는 함수
+  setInterval(function() {
+    countDown();
+  }, 1000);
+}
+
+function showDogs() {
+  //강아지가 들은 위치를 보여주는 함수.
+
+  for (i = 0; i < 24; i++) {
+    if (dog[i] == 1) {
+      //강아지가 있다면,
+      var test = document.getElementById(i);
+      test.setAttribute("src", "./images/dog.png");
+    }
+  }
+}
+
+function hideDogs() {
+  //강아지를 다시 숨기는 함수.
+  for (i = 0; i < 24; i++) {
+    if (dog[i] == 1) {
+      //강아지가 있다면,
+      var test = document.getElementById(i);
+      test.setAttribute("src", "./images/egg.png");
+    }
+  }
+}
+
+function editMessage() {
+  document.getElementById("gameMessage").innerHTML = "정답을 찾으세요.";
+}
+
+function makeGamePossible() {
+  //게임을 가능하게 하는 함수
+  nav.gamePossible = true;
+}
+
+function after5Seconds() {
+  //5초 뒤에 실행되는 함수
+  setTimeout(function() {
+    hideDogs();
+    counter();
+    editMessage();
+    makeGamePossible();
+    pauseClockMp3();
+  }, 5000);
+}
+
+function startGame() {
+  nav.gameStart = true;
+}
+
+function startApp() {
+  document.getElementById("gameMessage").innerHTML = "숨은 그림을 보세요.";
+  startGame();
+  deleteStartButton();
+  update();
+  setDog();
+  givingNavInfo();
+  showDogs();
+  playClockMp3();
+  playBackground();
+  after5Seconds();
+}
+
+function deleteStartButton() {
+  document.getElementById("button").innerHTML = "";
+}
+function rebuildStartButton() {
+  document.getElementById("button2").innerHTML = "게임실행";
+}
+function restartGame() {
+  location.href = "./puppy.html";
+}
+</script>
+  </head>
+  <body>
+
+    <audio id="endGameMusic">
+      <source src="./musics/bad.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <audio id="wrongMusic">
+      <source src="./musics/bi.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <audio id="rightMusic">
+      <source src="./musics/chimes.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <audio id="successMusic">
+      <source src="./musics/tada.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+
+    <audio id="clockmp3" loop>
+      <source src="./musics/clock.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+
+    <audio id="backgroundMusic" controls autoplay="true" loop>
+      <source src="./musics/ThatdayinTrueffect.mp3" type="audio/ogg">
+      <source src="./musics/ThatdayinTrueffect.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+    </audio>
+
+    <div class="container">
+      <div class="top">
+        <div class="title">
+            숨어있는 강아지 찾기
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="game_info">
+          <div class="game_info_item" id="button" onclick="startApp()">
+              게임실행
+          </div>
+          <div class="" id="button2" onclick="restartGame()">
+
+          </div>
+          <div class="game_info_item">
+            남은수 : <span id="first"></span>
+          </div>
+          <div class="game_info_item">
+            실패수: <span id="second"></span>
+          </div>
+          <div class="game_info_item">
+            시간 <span id="third"></span>
+          </div>
+          <div class="game_info_item" id="gameMessage">
+            게임이 진행될 예정입니다.
+          </div>
+        </div>
+        <div class="game_screen">
+          <h1 class="gameOverMessage" id="gameOverMessage">GAME OVER</h1>
+          <h1 class="gameSuccessMessage" id="gameSuccessMessage">SUCCESS</h1>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=0></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=1></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=2></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=3></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=4></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=5></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=6></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=7></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=8></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=9></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=10></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=11></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=12></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=13></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=14></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=15></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=16></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=17></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=18></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=19></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=20></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=21></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=22></div>
+          <div class='egg'><img src='./images/egg.png' onclick='clickEggs(this.id)'  id=23></div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+  <script type="text/javascript">
+$(document).ready(function() {
+  update();
+  setDog();
+  givingNavInfo();
+});
+
+//시계 똑딱 소리 실행시키는 함수
+function playClockMp3() {
+  document.getElementById("clockmp3").play();
+}
+//시계 똑딱 소리 중지하는 함수
+function pauseClockMp3() {
+  document.getElementById("clockmp3").pause();
+}
+
+//배경음 시작하는 함수
+function playBackground(){
+  document.getElementById("backgroundMusic").play();
+}
+
+//정답 소리
+function playRightMusic(){
+  document.getElementById("rightMusic").play();
+}
+
+//게임 클리어 소리
+function playClearMusic(){
+  document.getElementById("successMusic").play();
+}
+
+//땡 소리
+function playWrongMusic(){
+  document.getElementById("wrongMusic").play();
+}
+
+//게임 실패 소리
+function playFailMusic(){
+  document.getElementById("endGameMusic").play();
+}
+
+
+</script>
+</html>

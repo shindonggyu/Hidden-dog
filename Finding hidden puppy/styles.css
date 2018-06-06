@@ -1,0 +1,91 @@
+.container {
+  background-color: green;
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  width: 100%;
+  height: 100px;
+  font-size: 50px;
+  color: white;
+  text-align: center;
+  padding-top: 20px;
+}
+
+.bottom {
+  display: flex;
+}
+
+.game_info {
+  width: 170px;
+  height: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#button2 {
+  background-color: #f473e5;
+  margin-bottom: 7px;
+}
+.game_screen {
+  width: 80%;
+  height: 80vh;
+  background-color: #59d666;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 50px;
+  justify-content: center;
+  align-items: center;
+}
+
+.game_info_item {
+  background-color: #f473e5;
+  margin-bottom: 7px;
+}
+
+.egg {
+  margin-left: 35px;
+  margin-right: 35px;
+  border: 0px;
+}
+
+.egg img {
+  width: 100px;
+  height: 100px;
+  border: 0px;
+}
+
+.gameOverMessage {
+  position: absolute;
+  left: 750px;
+  top: 450px;
+  font-size: 80px;
+  color: red;
+  display: none;
+}
+
+.gameSuccessMessage {
+  position: absolute;
+  left: 750px;
+  top: 450px;
+  font-size: 80px;
+  color: blue;
+  display: none;
+}
+
+.fakeEggs {
+  margin-left: 35px;
+  margin-right: 35px;
+  border: 0px;
+}
+
+.fakeEggs img {
+  width: 100px;
+  height: 100px;
+  border: 0px;
+}
+
+audio {
+  display: flex;
+}

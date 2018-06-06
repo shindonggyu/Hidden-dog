@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Finding hidden puppy</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript">
+    var nav = {
+  //게임정보 객체 생성
+  leftCount: 8,
+  failCount: 0,
+  leftTime: 20
+};
+
+var randomnumber = []; //어떤 계란에 강아지를 넣을 것인지에 대한 정보
+var dog = []; //강아지가 들어있는 달걀의 순서
+var clicked = []; //클릭되있는지 안되어있는지 확인
+
+//중복 없이 난수 8개 받는 함수.
+function update() {
+  for (i = 0; i < 9; i++) {
+    while (1) {
+      var x = Math.floor(Math.random() * 24); //난수 하나 생성
+      var Found = 0; //이미있는 값인지 확인하기 위해 플래그 설정
+      //같은 값이 있는지 확인
+      for (j = 0; j < i; j++) {
+        if (randomnumber[j] == randomnumber[i]) {
+          //같은 값이 있으면
+          Found = 1;
+          break;
+        }
+      }
+      //같은 값이 없으면 while문 탈출
+      if (!Found) break;
+
+      randomnumber[i] = x;
+    }
+  }
+  randomnumber = randomnumber.sort(function(a, b) {
+    return a - b;
+  });
+}
+
+function setDog() {
+  //강아지가 들어있는 달걀의 순서를 정함.
+  for (i = 0; i < 24; i++) {
+    dog[i] = 0;
+  }
+
+  for (i = 0; i < 24; i++) {
+    dog[randomnumber[i]] = 1;
+  }
+}
+
+function createEggs(dog) {
+  //달걀 생성하는 함수
+  //근데 배열dog안에 숫자가 1인 경우에는 value값에 1을 준다.
+  for (i = 0; i < 24; i++) {
+    if (dog[i] == 1) {
+      $(".game_screen").append(
+        "<div class='egg'><img src='./images/egg.png' onclick='foundDog(this.id)' value='12' id=" +
+          i +
+          " ></div>"
+      );
+    } else {
+      $(".game_screen").append(
+        "<div class='egg'><img src='./images/egg.png' value='123' onclick='failToFindDog(this.id)' id=" +
+          i +
+          "></div>"
+      );
+    }
+  }
+}
+
+//알맞은 달걀을 눌렀을때 발생하는 함수
+/*function foundDog(clicked_id) {
+  if (clicked[clicked_id] == 1) {
+    //한번이라도 눌렸던 적이 있다면
+    return; //바로 함수 종료
+  }
+  clicked[clicked_id] = 1; //눌렀었다는 표시
+  nav.leftCount -= 1;
+  console.log(nav.leftCount);
+  var test = document.getElementById(clicked_id);
+  test.setAttribute("src", "./images/dog.png");
+
+  givingNavInfo();
+}
+*/
+//틀린 달걀을 눌렀을때 작동하는 함수
+/*function failToFindDog(clicked_id) {
+  nav.failCount += 1;
+  if (nav.failCount == 5) {
+    endGame();
+  }
+  givingNavInfo();
+}
+*/
+function givingNavInfo() {
+  //게임인포 부분 업데이트 함수
+  document.getElementById("first").innerHTML = nav.leftCount.toString();
+  document.getElementById("second").innerHTML = nav.failCount.toString();
+  document.getElementById("third").innerHTML = nav.leftTime.toString();
+}
+
+function countDown() {
+  //게임 시간 줄이는 함수
+
+  if (nav.leftTime == 0) {
+    endGame();
+    return;
+  }
+
+  nav.leftTime -= 1;
+
+  givingNavInfo();
+}
+
+function endGame() {
+  //게임 종료 함수
+  location.href = "gameEnd.html";
+}
+
+function counter() {
+  //매 초마다 동작되는 함수
+  setInterval(function() {
+    countDown();
+  }, 1000);
+}
+
+function showDogs() {
+  //강아지가 들은 위치를 보여주는 함수.
+
+  for (i = 0; i < 24; i++) {
+    if (dog[i] == 1) {
+      //강아지가 있다면,
+      var test = document.getElementById(i);
+      test.setAttribute("src", "./images/dog.png");
+    }
+  }
+}
+
+function hideDogs() {
+  //강아지를 다시 숨기는 함수.
+  for (i = 0; i < 24; i++) {
+    if (dog[i] == 1) {
+      //강아지가 있다면,
+      var test = document.getElementById(i);
+      test.setAttribute("src", "./images/egg.png");
+    }
+  }
+}
+
+function after5Seconds() {
+  //5초 뒤에 실행되는 함수
+  setTimeout(function() {
+    hideDogs();
+  }, 5000);
+}
+
+function startGame() {
+  location.href = "puppy.html";
+}
+</script>
+  </head>
+  <body>
+
+
+    <div class="container">
+      <div class="top">
+        <div class="title">
+            숨어있는 강아지 찾기
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="game_info">
+          <div class="game_info_item" onclick="startGame()">
+            게임 시작
+          </div>
+          <div class="game_info_item">
+            남은수 : <span id="first"></span>
+          </div>
+          <div class="game_info_item">
+            실패수: <span id="second"></span>
+          </div>
+          <div class="game_info_item">
+            시간 <span id="third"></span>
+          </div>
+          <div class="game_info_item">
+            게임이 진행될 예정입니다.
+          </div>
+        </div>
+        <div class="game_screen">
+
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+    $(document).ready(function() {
+  //바로 실행되는 함수들
+  update();
+  setDog();
+  createEggs(dog);
+  givingNavInfo();
+});
+console.log(randomnumber);
+</script>
+  </body>
+</html>
